@@ -9,7 +9,6 @@ public class config {
 
 	@Bean
 	public RestTemplate restTemplate() {
-		
 		return new RestTemplate();
 	}
 }

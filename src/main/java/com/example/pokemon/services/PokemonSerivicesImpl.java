@@ -2,8 +2,11 @@ package com.example.pokemon.services;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -16,27 +19,34 @@ import com.example.pokemon.model.Pokemon;
 import com.example.pokemon.model.Results;
 
 @Service("pokeServiceimp")
+@RequiredArgsConstructor
 public class PokemonSerivicesImpl implements PokemonServices {
 
-	@Override
-	public ArrayList<Results> listAllResults() {
-		
-		RestTemplate rt = new RestTemplate();
-	      HttpHeaders headers = new HttpHeaders();
-	        headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
-	        headers.add("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36");
-	        HttpEntity<String> entity = new HttpEntity<String>("parameters", headers);
-	        String url = "https://pokeapi.co/api/v2/pokemon-form";		
-	        ResponseEntity<Pokemon> rp = rt.exchange(url, HttpMethod.GET, entity,Pokemon.class);
-	        ArrayList<Results> rs = rp.getBody().getResults();
-		
-	        return rs;		
-	}
+  private final RestTemplate restTemplate;
 
-	@Override
-	public Results infoPoke(String url) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+  @Value("${pokeapi.url}")
+  private String url;
 
+  @Override
+  public List<Results> listAllResults() {
+
+    HttpEntity<String> entity = getStringHttpEntity();
+    ResponseEntity<Pokemon> response =
+        restTemplate.exchange(url, HttpMethod.GET, entity, Pokemon.class);
+    if (response.hasBody() && response.getBody() != null) {
+
+      return response.getBody().getResults();
+    }
+
+    return Collections.emptyList();
+  }
+
+  private HttpEntity<String> getStringHttpEntity() {
+    HttpHeaders headers = new HttpHeaders();
+    headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+    headers.add(
+        "user-agent",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36");
+    return new HttpEntity<>("parameters", headers);
+  }
 }
